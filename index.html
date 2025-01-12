@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingredient Substitute Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Ingredient Substitute Calculator</h1>
+  </header>
+
+  <main>
+    <!-- Recipe Input Form -->
+    <section id="recipe-input">
+      <h2>Enter Your Recipe</h2>
+      <form id="recipeForm">
+        <label for="ingredientSelect">Select Ingredient:</label>
+        <select id="ingredientSelect">
+          <option value="">--Choose an Ingredient--</option>
+          <option value="flour">Flour</option>
+          <option value="milk">Milk</option>
+          <option value="eggs">Eggs</option>
+          <option value="nuts">Nuts</option>
+        </select>
+
+        <label>Select Measurement System:</label>
+        <label>
+          <input type="checkbox" id="metricCheckbox" name="measurementSystem" value="metric"> Metric
+        </label>
+        <label>
+          <input type="checkbox" id="imperialCheckbox" name="measurementSystem" value="imperial"> Imperial
+        </label>
+
+        <label for="unitSelect">Unit:</label>
+        <select id="unitSelect">
+          <!-- Units will be populated dynamically based on the selected measurement system -->
+        </select>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" required>
+
+        <button type="button" id="addIngredient">Add Ingredient</button>
+      </form>
+      <ul id="ingredientList"></ul>
+    </section>
+
+    <!-- Allergy and Substitution Options -->
+    <section id="substitution-options">
+      <h2>Select Allergies & Substitutes</h2>
+      <label>
+        <input type="checkbox" id="glutenAllergy"> Gluten Allergy
+      </label>
+      <label>
+        <input type="checkbox" id="dairyAllergy"> Dairy Allergy
+      </label>
+
+      <button type="button" id="calculate">Calculate Substitutes</button>
+    </section>
+
+    <!-- Output Results -->
+    <section id="results">
+      <h2>Updated Recipe</h2>
+      <ul id="updatedRecipe"></ul>
+    </section>
+  </main>
+
+  <script src="ingredients.js"></script>
+  <script src="scripts.js"></script>
+</body>
+</html>
