@@ -1,57 +1,164 @@
-/* styles.css */
-
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-  }
-  
-  header {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 1rem;
-  }
-  
-  main {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 1rem;
-    background: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  h2 {
-    color: #333;
-  }
-  
-  label, input, select, button {
-    display: block;
-    margin: 0.5rem 0;
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  button {
-    padding: 0.5rem;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
-  
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  #results ul {
-    background: #f0f8ff;
-    padding: 1rem;
-  }
-  
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+}
+
+header {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 1rem;
+}
+
+main {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  color: #333;
+}
+
+label, input, select, button {
+  display: block;
+  margin: 0.5rem 0;
+  width: 100%;
+  max-width: 400px;
+}
+
+button {
+  padding: 0.5rem;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+#results ul {
+  background: #f0f8ff;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Styles for the ingredient suggestions dropdown */
+.suggestions {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: white;
+  position: absolute;
+  width: 100%; /* Matches the input width */
+  z-index: 1000;
+}
+
+.suggestions li {
+  padding: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Modal Styles */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 1001;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.modal-content ul {
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.modal-content ul li {
+  padding: 10px;
+  cursor: pointer;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  margin: 5px 0;
+  border-radius: 4px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.modal-content ul li:hover {
+  background: #f0f0f0;
+}
+
+.modal-content button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007BFF;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-content button:hover {
+  background: #0056b3;
+}
+
+/* Scrollbar Styling (optional) */
+.suggestions::-webkit-scrollbar,
+.modal-content ul::-webkit-scrollbar {
+  width: 8px;
+}
+
+.suggestions::-webkit-scrollbar-thumb,
+.modal-content ul::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.suggestions::-webkit-scrollbar-thumb:hover,
+.modal-content ul::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
