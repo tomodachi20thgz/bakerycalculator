@@ -1,12 +1,12 @@
 import { ingredients } from "./ingredients.js"; // Import ingredients from ingredients.js
 
-// Conversion rates for units to base units (grams or milliliters)
+// Conversion rates for units to base units (grams or millilitres)
 const unitConversionRates = {
   metric: {
     grams: 1,
     kilograms: 1000,
-    milliliters: 1,
-    liters: 1000,
+    millilitres: 1,
+    litres: 1000,
   },
   imperial: {
     teaspoons: 5,
@@ -18,45 +18,58 @@ const unitConversionRates = {
 
 // Units available for each measurement system
 const units = {
-  metric: ["grams", "kilograms", "milliliters", "liters"],
+  metric: ["grams", "kilograms", "millilitres", "litres"],
   imperial: ["teaspoons", "tablespoons", "cups", "ounces"],
 };
 
-// Recipe array to store the ingredients
+// Liquid adjustment data based on flour type and recipe category
+const liquidAdjustments = {
+  "Gluten-Free All-Purpose Flour": { cake: 0.10, biscuits: 0.05, pastries: 0.05 },
+  "Rice Flour": { cake: -0.10, biscuits: -0.05, pastries: -0.10 },
+  "Gluten Free Self-Raising Flour": { cake: 0.10, biscuits: 0.05, pastries: 0.05 },
+  "Gluten Free Bread Flour": { cake: 0.10, biscuits: 0.05, pastries: 0.05 }
+};
+
 let recipe = [];
+let updatedResults = [];
 
-// Dynamically generate the ingredient list, including main ingredients and their alternatives
+// Generate the ingredient list dynamically, including only alternatives
 const ingredientList = Object.keys(ingredients).reduce((list, key) => {
-  // Add the main ingredient
-  list.push(key);
-
-  // Add all alternatives for the ingredient
   if (ingredients[key].alternatives) {
     ingredients[key].alternatives.forEach((alt) => list.push(alt.name));
   }
-
   return list;
 }, []);
 
-// Log to confirm the ingredient list
-console.log("Ingredient List:", ingredientList);
-
-// Populate the unit dropdown based on the selected measurement system
+// Function to populate unit dropdown
 function populateUnits(system) {
   const unitSelect = document.getElementById("unitSelect");
   unitSelect.innerHTML = "";
-
+  
   units[system].forEach((unit) => {
     const option = document.createElement("option");
     option.value = unit;
-    option.textContent = unit.charAt(0).toUpperCase() + unit.slice(1); // Capitalize
+    option.textContent = unit.charAt(0).toUpperCase() + unit.slice(1);
     unitSelect.appendChild(option);
   });
 }
 
-// Default to Metric on page load
-document.getElementById("metricCheckbox").checked = true;
-populateUnits("metric");
+// Function to convert between units
+function convertUnit(quantity, fromUnit, toUnit) {
+  const conversionTable = unitConversionRates.metric; // Default to metric
+  
+  if (conversionTable[fromUnit] && conversionTable[toUnit]) {
+    return (quantity * conversionTable[fromUnit]) / conversionTable[toUnit];
+  }
+  return quantity;
+}
+
+// Event listener to set the default unit system
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("metricCheckbox").checked = true;
+  populateUnits("metric");
+  updateIngredientList();
+});
 
 // Ingredient search and autofill logic
 const ingredientSearch = document.getElementById("ingredientSearch");
@@ -64,21 +77,21 @@ const ingredientSuggestions = document.getElementById("ingredientSuggestions");
 
 ingredientSearch.addEventListener("input", () => {
   const query = ingredientSearch.value.toLowerCase();
-  ingredientSuggestions.innerHTML = ""; // Clear previous suggestions
+  ingredientSuggestions.innerHTML = "";
 
   if (query) {
     const matches = ingredientList.filter((ingredient) =>
-      ingredient.toLowerCase().includes(query) // Use includes for partial matching
+      ingredient.toLowerCase().includes(query)
     );
 
     matches.forEach((match) => {
       const suggestionItem = document.createElement("li");
       suggestionItem.textContent = match;
-      suggestionItem.classList.add("suggestion-item"); // Add class for styling
+      suggestionItem.classList.add("suggestion-item");
       suggestionItem.addEventListener("mousedown", (event) => {
-        event.preventDefault(); // Prevent blur event from clearing suggestions
-        ingredientSearch.value = match; // Set the selected value
-        ingredientSuggestions.innerHTML = ""; // Clear suggestions
+        event.preventDefault();
+        ingredientSearch.value = match;
+        ingredientSuggestions.innerHTML = "";
       });
       ingredientSuggestions.appendChild(suggestionItem);
     });
@@ -87,139 +100,262 @@ ingredientSearch.addEventListener("input", () => {
 
 ingredientSearch.addEventListener("blur", () => {
   setTimeout(() => {
-    ingredientSuggestions.innerHTML = ""; // Delay clearing to allow clicks
+    ingredientSuggestions.innerHTML = "";
   }, 100);
 });
 
-// Add ingredient to the recipe
-document.getElementById("addIngredient").addEventListener("click", () => {
+// Function to add an ingredient to the recipe
+function addIngredient() {
   const ingredient = ingredientSearch.value.trim();
   const quantity = parseFloat(document.getElementById("quantity").value);
-  const metricSelected = document.getElementById("metricCheckbox").checked;
-  const imperialSelected = document.getElementById("imperialCheckbox").checked;
+  const unit = document.getElementById("unitSelect").value;
 
-  if (!ingredient || isNaN(quantity) || (!metricSelected && !imperialSelected)) {
-    alert("Please select an ingredient, enter the quantity, and choose a measurement system!");
+  if (!ingredient || isNaN(quantity) || quantity <= 0) {
+    alert("Please select a valid ingredient and enter a valid quantity!");
     return;
   }
-
-  const system = metricSelected ? "metric" : "imperial";
-  const unit = document.getElementById("unitSelect").value;
-  const conversionRate = unitConversionRates[system][unit];
-  const convertedQuantity = quantity * conversionRate;
 
   recipe.push({
     ingredient,
     originalQuantity: quantity,
     originalUnit: unit,
-    quantity: convertedQuantity,
-    unit: system === "metric" ? "grams/milliliters" : "grams (converted)",
+    liquidAdjustment: "No adjustment",
   });
 
   updateIngredientList();
   document.getElementById("recipeForm").reset();
-  document.getElementById("metricCheckbox").checked = true; // Reset to Metric by default
   populateUnits("metric");
-});
+}
 
-// Update the ingredient list in the UI
+// Function to update the ingredient list in the UI
 function updateIngredientList() {
   const ingredientList = document.getElementById("ingredientList");
   ingredientList.innerHTML = "";
+
   recipe.forEach((item, index) => {
-    ingredientList.innerHTML += `<li>
-      ${item.originalQuantity} ${item.originalUnit} of ${item.ingredient} 
-      (${item.quantity.toFixed(2)} ${item.unit})
-      <button onclick="removeIngredient(${index})">Remove</button>
-    </li>`;
+    const listItem = document.createElement("li");
+    listItem.classList.add("ingredient-item");
+
+    const span = document.createElement("span");
+    span.textContent = `${item.originalQuantity.toFixed(2)} ${item.originalUnit} of ${item.ingredient}`;
+
+    const removeButton = document.createElement("button");
+    removeButton.classList.add("remove-button");
+    removeButton.textContent = "X";
+    removeButton.addEventListener("click", () => removeIngredient(index));
+
+    listItem.appendChild(span);
+    listItem.appendChild(removeButton);
+    ingredientList.appendChild(listItem);
   });
 }
 
-// Remove an ingredient from the recipe
+// Function to remove an ingredient from the recipe
 function removeIngredient(index) {
   recipe.splice(index, 1);
   updateIngredientList();
 }
 
-// Modal Elements for Substitute Selection
-const substituteModal = document.getElementById("substituteModal");
-const substituteList = document.getElementById("substituteList");
-const closeModal = document.getElementById("closeModal");
+// Function to find the base ingredient key
+function findIngredientKey(ingredientName) {
+  for (const key of Object.keys(ingredients)) {
+    if (key.toLowerCase().trim() === ingredientName.toLowerCase().trim()) {
+      return key;
+    }
+    if (ingredients[key].alternatives.some(alt => alt.name.toLowerCase().trim() === ingredientName.toLowerCase().trim())) {
+      return key;
+    }
+  }
+  return null;
+}
 
-// Open Modal Function
-function openSubstituteModal(substitutes, itemIndex) {
-  substituteList.innerHTML = ""; // Clear existing substitutes
+// Function to show a selection modal for alternatives
+function showSubstituteSelection(substitutes, originalIngredient, callback) {
+  const modal = document.getElementById("substituteModal");
+  const substituteList = document.getElementById("substituteList");
+  substituteList.innerHTML = "";
 
-  substitutes.forEach((substitute) => {
-    const li = document.createElement("li");
-    li.textContent = substitute.name;
-    li.addEventListener("click", () => {
-      applySubstitute(substitute, itemIndex); // Apply selected substitute
+  substitutes.forEach(substitute => {
+    const listItem = document.createElement("li");
+    listItem.textContent = substitute.name;
+    listItem.addEventListener("click", () => {
+      callback(substitute);
+      modal.style.display = "none";
     });
-    substituteList.appendChild(li);
+    substituteList.appendChild(listItem);
   });
 
-  substituteModal.style.display = "block"; // Show modal
+  modal.style.display = "block";
 }
 
-// Close Modal Function
-closeModal.addEventListener("click", () => {
-  substituteModal.style.display = "none"; // Hide modal
-});
+// -------------------------- calculate function ----------------------------
 
-// Apply Substitute Function
-function applySubstitute(substitute, itemIndex) {
-  const item = recipe[itemIndex];
-  const newQuantity = item.quantity * substitute.conversionRate;
+// Function to calculate ingredient adjustments
+// Ensure water is always processed last
+function calculate() {
+  updatedResults = [];
+  const glutenFree = document.getElementById("glutenAllergy")?.checked || false;
+  const dairyFree = document.getElementById("dairyAllergy")?.checked || false;
+  const recipeType = document.getElementById("recipeTypeSelect").value;
 
-  // Update the item in the recipe
-  recipe[itemIndex] = {
-    ingredient: substitute.name,
-    originalQuantity: item.originalQuantity,
-    originalUnit: item.originalUnit,
-    quantity: newQuantity,
-    unit: item.unit,
-  };
+  let totalLiquidAdjustment = 0;
+  let waterFound = false;
+  let adjustedWaterQuantity = null;
+  let waterUnit = "millilitres";
+  let pendingSubstitutions = 0;
 
-  substituteModal.style.display = "none"; // Hide modal
-  updateUpdatedRecipeList(recipe); // Refresh updated recipe
-}
+  console.log("Starting calculation...");
 
-// Calculate substitutes for selected allergies
-document.getElementById("calculate").addEventListener("click", () => {
-  const glutenAllergy = document.getElementById("glutenAllergy").checked;
-  const dairyAllergy = document.getElementById("dairyAllergy").checked;
+  for (const item of recipe) {
+    let ingredientKey = findIngredientKey(item.ingredient);
 
-  if (recipe.length === 0) {
-    alert("Please add ingredients to the recipe before calculating substitutes!");
-    return;
+    if (!ingredientKey || !ingredients[ingredientKey]) {
+      updatedResults.push({
+        ingredient: item.ingredient,
+        quantity: item.originalQuantity,
+        unit: item.originalUnit || "(unit missing)",
+      });
+      continue;
+    }
+
+    let finalIngredient = item.ingredient;
+    let finalQuantity = item.originalQuantity;
+    let finalUnit = item.originalUnit || "grams";
+
+    if (finalIngredient.toLowerCase().includes("water")) {
+      console.log("Water detected:", item);
+      waterFound = true;
+      adjustedWaterQuantity = finalQuantity;
+      waterUnit = finalUnit;
+      continue;
+    }
+
+    const baseIngredient = ingredients[ingredientKey];
+
+    if (glutenFree && baseIngredient.alternatives) {
+      const glutenFreeSubstitutes = baseIngredient.alternatives.filter(
+        (alt) => alt.glutenFree === true
+      );
+
+      if (glutenFreeSubstitutes.length > 0) {
+        pendingSubstitutions++; // Track async operations
+        showSubstituteSelection(glutenFreeSubstitutes, item.ingredient, (chosenSubstitute) => {
+          console.log("Substituting:", item.ingredient, "->", chosenSubstitute.name);
+          finalIngredient = chosenSubstitute.name;
+          finalUnit = chosenSubstitute.unit || finalUnit;
+
+          if (chosenSubstitute.conversionRate) {
+            finalQuantity *= chosenSubstitute.conversionRate;
+          }
+
+          if (liquidAdjustments[finalIngredient] && liquidAdjustments[finalIngredient][recipeType] !== undefined) {
+            totalLiquidAdjustment += liquidAdjustments[finalIngredient][recipeType];
+            console.log("Liquid Adjustment Updated:", totalLiquidAdjustment);
+          }
+
+          updatedResults.push({
+            ingredient: finalIngredient,
+            quantity: finalQuantity,
+            unit: finalUnit,
+          });
+
+          pendingSubstitutions--; // Decrease pending count
+          checkAndProcessWater(); // Ensure water is processed last
+        });
+        continue;
+      }
+    }
+
+    // ✅ **DAIRY-FREE SUBSTITUTIONS**
+    if (dairyFree && baseIngredient.alternatives) {
+      const dairyFreeSubstitutes = baseIngredient.alternatives.filter(
+        (alt) => alt.dairyFree === true
+      );
+
+      if (dairyFreeSubstitutes.length > 0) {
+        pendingSubstitutions++;
+        showSubstituteSelection(dairyFreeSubstitutes, item.ingredient, (chosenSubstitute) => {
+          console.log("Substituting (Dairy-Free):", item.ingredient, "->", chosenSubstitute.name);
+          finalIngredient = chosenSubstitute.name;
+          finalUnit = chosenSubstitute.unit || finalUnit;
+
+          // Maintain 1:1 ratio
+          finalQuantity = item.originalQuantity;
+
+          updatedResults.push({
+            ingredient: finalIngredient,
+            quantity: finalQuantity,
+            unit: finalUnit,
+          });
+
+          pendingSubstitutions--;
+          checkAndProcessWater();
+        });
+        continue;
+      }
+    }
+
+    updatedResults.push({
+      ingredient: finalIngredient,
+      quantity: finalQuantity,
+      unit: finalUnit,
+    });
   }
 
-  recipe.forEach((item, index) => {
-    let substitutes = null;
+  function checkAndProcessWater() {
+    if (pendingSubstitutions > 0) return; // Ensure async operations finish first
 
-    if (glutenAllergy && ingredients[item.ingredient]?.alternatives) {
-      substitutes = ingredients[item.ingredient].alternatives;
+    console.log("Processing water... Water Found:", waterFound);
+    console.log("Total Liquid Adjustment:", totalLiquidAdjustment);
+
+    if (waterFound) {
+      adjustedWaterQuantity *= (1 + totalLiquidAdjustment);
+      adjustedWaterQuantity = Math.max(adjustedWaterQuantity, 1);
+
+      console.log("Adjusted Water Quantity:", adjustedWaterQuantity);
+      updatedResults.push({
+        ingredient: "Water",
+        quantity: adjustedWaterQuantity,
+        unit: waterUnit,
+      });
     }
 
-    if (dairyAllergy && ingredients[item.ingredient]?.alternatives) {
-      substitutes = ingredients[item.ingredient].alternatives;
+    if (!waterFound && totalLiquidAdjustment !== 0) {
+      console.log("Adding new water due to liquid adjustment.");
+      updatedResults.push({
+        ingredient: "Water",
+        quantity: (100 * (1 + totalLiquidAdjustment)),
+        unit: "millilitres",
+      });
     }
 
-    if (substitutes) {
-      openSubstituteModal(substitutes, index); // Open modal for substitute selection
-    }
+    console.log("Final updated results:", updatedResults);
+    updateResultsList();
+  }
+
+  // Ensure water processing happens even if no substitutions occurred
+  setTimeout(checkAndProcessWater, 50);
+}
+
+
+//-----------------------------------------------------------------
+
+function updateResultsList() {
+  const resultsList = document.getElementById("updatedRecipe");
+  resultsList.innerHTML = updatedResults
+    .map((item) => {
+      const formattedQuantity = item.quantity ? item.quantity.toFixed(2) : "N/A";
+      return `<li>${formattedQuantity} ${item.unit} of ${item.ingredient} - ${item.liquidAdjustment}</li>`;
+    })
+    .join("");
+}
+
+
+// Event listeners
+document.getElementById("addIngredient").addEventListener("click", addIngredient);
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("calculate").addEventListener("click", calculate);
+  document.getElementById("closeModal").addEventListener("click", () => {
+    document.getElementById("substituteModal").style.display = "none";
   });
 });
-
-// Update the UI with the updated recipe
-function updateUpdatedRecipeList(updatedRecipe) {
-  const updatedRecipeList = document.getElementById("updatedRecipe");
-  updatedRecipeList.innerHTML = "";
-
-  updatedRecipe.forEach((item) => {
-    updatedRecipeList.innerHTML += `<li>
-      ${item.quantity.toFixed(0)} grams of ${item.ingredient}
-    </li>`;
-  });
-}

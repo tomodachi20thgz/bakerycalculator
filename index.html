@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ingredient Substitute Calculator helps you find alternatives for ingredients in your recipes.">
   <title>Ingredient Substitute Calculator</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,6 +13,17 @@
   </header>
 
   <main>
+    <!-- Recipe Type Selection -->
+    <section id="recipe-type">
+      <h2>Recipe Type</h2>
+      <label for="recipeTypeSelect">Select Recipe Type:</label>
+      <select id="recipeTypeSelect" aria-label="Select Recipe Type">
+        <option value="biscuits">Biscuits</option>
+        <option value="cakes">Cakes</option>
+        <option value="pastries">Pastries</option>
+      </select>
+    </section>
+
     <!-- Recipe Input Form -->
     <section id="recipe-input">
       <h2>Enter Your Recipe</h2>
@@ -22,24 +34,37 @@
           type="text" 
           id="ingredientSearch" 
           placeholder="Start typing an ingredient..." 
-          autocomplete="off"
+          aria-label="Search Ingredient"
         >
-        <ul id="ingredientSuggestions" class="suggestions"></ul>
+        <ul id="ingredientSuggestions" class="suggestions" role="listbox"></ul>
 
         <!-- Measurement System Selection -->
-        <label>Select Measurement System:</label>
-        <label>
-          <input type="checkbox" id="metricCheckbox" name="measurementSystem" value="metric"> Metric
-        </label>
-        <label>
-          <input type="checkbox" id="imperialCheckbox" name="measurementSystem" value="imperial"> Imperial
-        </label>
+        <h3>Select Measurement System:</h3>
+        <div class="checkbox-group">
+          <label for="metricCheckbox">
+            <input 
+              type="checkbox" 
+              id="metricCheckbox" 
+              name="measurementSystem" 
+              value="metric" 
+              checked 
+              aria-label="Select Metric System"
+            > Metric
+          </label>
+          <label for="imperialCheckbox">
+            <input 
+              type="checkbox" 
+              id="imperialCheckbox" 
+              name="measurementSystem" 
+              value="imperial" 
+              aria-label="Select Imperial System"
+            > Imperial
+          </label>
+        </div>
 
         <!-- Unit Dropdown -->
         <label for="unitSelect">Unit:</label>
-        <select id="unitSelect">
-          <!-- Units will be populated dynamically based on the selected measurement system -->
-        </select>
+        <select id="unitSelect" aria-label="Select Unit"></select>
 
         <!-- Quantity Input -->
         <label for="quantity">Quantity:</label>
@@ -50,48 +75,57 @@
           placeholder="Enter quantity" 
           min="0.01" 
           step="0.01" 
-          required
+          required 
+          aria-label="Enter Quantity"
         >
 
         <!-- Add Ingredient Button -->
-        <button type="button" id="addIngredient">Add Ingredient</button>
+        <button type="button" id="addIngredient" aria-label="Add Ingredient">Add Ingredient</button>
       </form>
 
       <!-- Added Ingredients List -->
-      <ul id="ingredientList"></ul>
+      <ul id="ingredientList" aria-label="Ingredient List"></ul>
     </section>
 
     <!-- Allergy and Substitution Options -->
     <section id="substitution-options">
-      <h2>Select Allergies & Substitutes</h2>
-      <label>
-        <input type="checkbox" id="glutenAllergy"> Gluten Allergy
-      </label>
-      <label>
-        <input type="checkbox" id="dairyAllergy"> Dairy Allergy
-      </label>
-
-      <button type="button" id="calculate">Calculate Substitutes</button>
+      <h2>Allergy and Substitution Options</h2>
+      <div class="checkbox-group">
+        <label for="glutenAllergy">
+          <input 
+            type="checkbox" 
+            id="glutenAllergy" 
+            aria-label="Gluten Allergy Option"
+          > Gluten Allergy
+        </label>
+        <label for="dairyAllergy">
+          <input 
+            type="checkbox" 
+            id="dairyAllergy" 
+            aria-label="Dairy Allergy Option"
+          > Dairy Allergy
+        </label>
+      </div>
+      <button type="button" id="calculate" aria-label="Calculate Substitutes">Calculate</button>
     </section>
 
     <!-- Output Results -->
     <section id="results">
       <h2>Updated Recipe</h2>
-      <ul id="updatedRecipe"></ul>
+      <ul id="updatedRecipe" aria-label="Updated Recipe List"></ul>
     </section>
   </main>
 
   <!-- Substitute Modal -->
-  <div id="substituteModal" class="modal">
+  <div id="substituteModal" class="modal" aria-hidden="true">
     <div class="modal-content">
+      <button id="closeModal" class="modal-close" aria-label="Close Modal">×</button>
       <h3>Choose a Substitute</h3>
-      <ul id="substituteList"></ul>
-      <button id="closeModal">Close</button>
+      <ul id="substituteList" aria-label="Substitute List"></ul>
     </div>
   </div>
 
   <!-- JavaScript Files -->
-  <!-- Load scripts.js as a module -->
   <script type="module" src="scripts.js"></script>
 </body>
 </html>
