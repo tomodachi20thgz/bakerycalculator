@@ -320,15 +320,6 @@ function calculate() {
       });
     }
 
-    if (!waterFound && totalLiquidAdjustment !== 0) {
-      console.log("Adding new water due to liquid adjustment.");
-      updatedResults.push({
-        ingredient: "Water",
-        quantity: (100 * (1 + totalLiquidAdjustment)),
-        unit: "millilitres",
-      });
-    }
-
     console.log("Final updated results:", updatedResults);
     updateResultsList();
   }
